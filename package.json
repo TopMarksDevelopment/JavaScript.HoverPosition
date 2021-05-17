@@ -1,0 +1,27 @@
+{
+  "name": "hoverposition",
+  "version": "0.0.0-alpha.0",
+  "description": "A compact tool to help position an element against another. Similar to JQuery `.position()`",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TopMarksDevelopment/npm-hover-position.git"
+  },
+  "keywords": [
+    "JQuery position",
+    "element position",
+    "vanilla js positioning"
+  ],
+  "author": "TopMarksDevelopment",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TopMarksDevelopment/npm-hover-position/issues"
+  },
+  "homepage": "https://github.com/TopMarksDevelopment/npm-hover-position#readme",
+  "devDependencies": {
+    "typescript": "^4.2.4"
+  }
+}
