@@ -1,0 +1,4 @@
+# We only care about the src & package-lock.json
+# README, CHANGELOG, LICENSE & package.json will always be included
+!src/
+!package-lock.json
