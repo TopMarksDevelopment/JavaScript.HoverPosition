@@ -1,6 +1,7 @@
 {
-  "name": "hover-position",
+  "name": "@topmarksdevelopment/hover-position",
   "version": "0.0.0-alpha.0",
+  "preview": true,
   "description": "A compact tool to help position an element against another. Similar to JQuery `.position()`",
   "main": "src/index.js",
   "scripts": {
@@ -23,5 +24,6 @@
   "homepage": "https://github.com/TopMarksDevelopment/JavaScript.HoverPosition#readme",
   "devDependencies": {
     "typescript": "^4.2.4"
-  }
+  },
+  "dependencies": {}
 }
