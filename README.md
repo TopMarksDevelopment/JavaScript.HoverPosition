@@ -115,3 +115,11 @@ So, as well as those above, it will also allow:
 -   "center"
 -   "left"
 -   "right"
+
+## Changes
+
+You can see all the changes in our [change log](./ChangeLog)
+
+## License
+
+This extension is licensed under the [MIT License](./License)
