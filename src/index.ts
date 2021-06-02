@@ -1,5 +1,8 @@
 import * as types from "./Types/AlignmentTypes";
-import { Alignments } from "./Interfaces/Alignments";
+import Alignments from "./Interfaces/Alignments";
+import CalculationOutcome from "./Interfaces/CalculationOutcome";
+import ElementDimensions from "./Interfaces/ElementDimensions";
+import FitPosition from "./Interfaces/FitPosition";
 import FitPositionData from "./Interfaces/FitPositionData";
 import PositionCollision from "./Enumerators/PositionCollision";
 import PositionOptions from "./Interfaces/PositionOptions";

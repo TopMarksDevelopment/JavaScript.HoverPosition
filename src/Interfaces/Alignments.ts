@@ -1,6 +1,6 @@
 import { HorizontalAlignment, VerticalAlignment } from "../Types/AlignmentTypes";
 
-export interface Alignments {
+export default interface Alignments {
     vertical: VerticalAlignment;
     horizontal: HorizontalAlignment;
 }
