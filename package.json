@@ -1,6 +1,6 @@
 {
   "name": "hover-position",
-  "version": "0.0.0-alpha.1",
+  "version": "0.0.0-alpha.0",
   "description": "A compact tool to help position an element against another. Similar to JQuery `.position()`",
   "main": "src/index.js",
   "scripts": {
