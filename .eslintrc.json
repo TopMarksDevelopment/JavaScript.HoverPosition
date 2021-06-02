@@ -13,7 +13,7 @@
             "warn",
             {
                 "selector": "function",
-                "format": ["camelCase", "snake_case"]
+                "format": "camelCase"
             }
         ],
         "@typescript-eslint/semi": "warn",
