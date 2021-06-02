@@ -1,8 +1,8 @@
-import PositionCollision from "./Enumerators/PositionCollision";
+import * as types from "./Types/AlignmentTypes";
 import { Alignments } from "./Interfaces/Alignments";
 import FitPositionData from "./Interfaces/FitPositionData";
+import PositionCollision from "./Enumerators/PositionCollision";
 import PositionOptions from "./Interfaces/PositionOptions";
-import * as types from "./Types/AlignmentTypes";
 
 export class HoverPosition {
     private _bodyDims: ElementDimensions;
@@ -389,3 +389,6 @@ export type PositionAlignment = types.PositionAlignment;
 export type CombinedAlignment = types.CombinedAlignment;
 export type VerticalAlignment = types.VerticalAlignment;
 export type HorizontalAlignment = types.HorizontalAlignment;
+
+export * from "./Enumerators/PositionCollision";
+export * from "./Interfaces/PositionOptions";
