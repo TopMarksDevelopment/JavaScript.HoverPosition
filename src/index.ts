@@ -1,11 +1,11 @@
 import * as types from "./Types/AlignmentTypes";
 import Alignments from "./Interfaces/Alignments";
 import CalculationOutcome from "./Interfaces/CalculationOutcome";
+import Collision from "./Enumerators/PositionCollision";
 import ElementDimensions from "./Interfaces/ElementDimensions";
 import FitPosition from "./Interfaces/FitPosition";
 import FitPositionData from "./Interfaces/FitPositionData";
-import PositionCollision from "./Enumerators/PositionCollision";
-import PositionOptions from "./Interfaces/PositionOptions";
+import Options from "./Interfaces/PositionOptions";
 
 export class HoverPosition {
     private _bodyDims: ElementDimensions;
@@ -26,7 +26,7 @@ export class HoverPosition {
      * Get the position placement for one element relative to another
      * @param options The options to help attain the `top` & `left`
      */
-    constructor(options: PositionOptions) {
+    constructor(options: Options) {
         const originalDisplay = options.target.style.display;
         options.target.style.display = "none";
 
@@ -78,8 +78,8 @@ export class HoverPosition {
             );
 
         if (
-            options.collision === PositionCollision.ignore ||
-            (options.collision === PositionCollision.flipfit &&
+            options.collision === Collision.ignore ||
+            (options.collision === Collision.flipfit &&
                 myPos === "center center" &&
                 atPos === "center center")
         ) {
@@ -96,23 +96,23 @@ export class HoverPosition {
     private calculatePosition(
         my: CombinedAlignment,
         at: CombinedAlignment,
-        options: PositionOptions
+        options: Options
     ): FitPosition {
         const fitDataArray = this.getFitPositions(),
             fitData = fitDataArray.filter((f) => f.my === my && f.at === at)[0];
 
         if (
-            options.collision === PositionCollision.ignore ||
+            options.collision === Collision.ignore ||
             (!fitData.top.willCollide && !fitData.left.willCollide)
         ) {
             return { top: fitData.top.value, left: fitData.left.value };
         }
 
-        if (options.collision === PositionCollision.flipfit) {
+        if (options.collision === Collision.flipfit) {
             return this.calculatePosition(
                 HoverPosition.flip(my),
                 HoverPosition.flip(at),
-                Object.assign(options, { collision: PositionCollision.ignore })
+                Object.assign(options, { collision: Collision.ignore })
             );
         }
 
@@ -393,4 +393,4 @@ export type CombinedAlignment = types.CombinedAlignment;
 export type VerticalAlignment = types.VerticalAlignment;
 export type HorizontalAlignment = types.HorizontalAlignment;
 
-export * from "./Enumerators/PositionCollision";
+export { default as PositionCollision } from "./Enumerators/PositionCollision";
