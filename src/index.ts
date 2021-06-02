@@ -393,4 +393,4 @@ export type CombinedAlignment = types.CombinedAlignment;
 export type VerticalAlignment = types.VerticalAlignment;
 export type HorizontalAlignment = types.HorizontalAlignment;
 
-export * as PositionCollision from "./Enumerators/PositionCollision";
+export * from "./Enumerators/PositionCollision";
