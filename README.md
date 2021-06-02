@@ -118,8 +118,8 @@ So, as well as those above, it will also allow:
 
 ## Changes
 
-You can see all the changes in our [change log](./ChangeLog)
+You can see all the changes in our [change log](./CHANGELOG.md)
 
 ## License
 
-This extension is licensed under the [MIT License](./License)
+This extension is licensed under the [MIT License](./LICENSE)
