@@ -1,7 +1,7 @@
 enum PositionCollision {
-    bestFit,
-    flipfit,
-    ignore,
+	bestFit,
+	flipfit,
+	ignore,
 }
 
 export default PositionCollision;

@@ -1,4 +1,4 @@
 export default interface FitPosition {
-    top: number;
-    left: number;
+	top: number;
+	left: number;
 }
