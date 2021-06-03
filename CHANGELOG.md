@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > As this package is not released (kind of), this change log will be cleared on the official release of `v1`
 
-## 0.0.0-alpha.1
+## v0.0.0-alpha.1
 
 ### Changes
 
