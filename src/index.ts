@@ -115,66 +115,7 @@ export class HoverPosition {
 			return { top: myFits[0].top.value, left: myFits[0].left.value };
 		}
 
-		const parsedMy = HoverPosition.parse(my),
-			parsedAt = HoverPosition.parse(at);
-
-		const bestAltHorizFits = myFits.filter(
-			(f) => f.my.startsWith(parsedMy.vertical + ' ') && f.at.startsWith(parsedAt.vertical + ' '),
-		);
-
-		const bestAltVertFits = myFits.filter(
-			(f) => f.my.endsWith(' ' + parsedMy.horizontal) && f.at.endsWith(' ' + parsedAt.horizontal),
-		);
-
-		if (bestAltVertFits.length > 0 && bestAltHorizFits.length > 0) {
-			myFits = options.bestFitPreference === 'vertical' ? bestAltVertFits : bestAltHorizFits;
-		} else if (bestAltVertFits.length > 0) {
-			myFits = bestAltVertFits;
-		} else if (bestAltHorizFits.length > 0) {
-			myFits = bestAltHorizFits;
-		} else {
-			if (options.bestFitPreference === 'vertical') {
-				// If it's center then we don't care about overlay. Infact, it's prefered!
-				const bothCenter = parsedMy.horizontal === 'center' && parsedAt.horizontal === 'center',
-					flippedMy = bothCenter
-						? 'left' // <= Does pushing to the left fit?
-						: HoverPosition.flipAlignment(parsedMy.horizontal),
-					flippedAt = bothCenter
-						? 'left' // <= Does pushing to the left fit?
-						: HoverPosition.flipAlignment(parsedMy.horizontal);
-
-				myFits = myFits.filter((f) => f.my.endsWith(' ' + flippedMy) && f.at.endsWith(' ' + flippedAt));
-
-				if (myFits.length === 0 && bothCenter) {
-					// What about to the right?
-					myFits = myFits.filter(
-						(f) =>
-							f.my.endsWith(' ' + HoverPosition.flipAlignment(flippedMy)) &&
-							f.at.endsWith(' ' + HoverPosition.flipAlignment(flippedAt)),
-					);
-				}
-			} else {
-				// If it's center then we don't care about overlay. Infact, it's prefered!
-				const bothCenter = parsedMy.vertical === 'center' && parsedAt.vertical === 'center',
-					flippedMy = bothCenter
-						? 'top' // <= Does pushing to the top fit?
-						: HoverPosition.flipAlignment(parsedMy.vertical),
-					flippedAt = bothCenter
-						? 'top' // <= Does pushing to the top fit?
-						: HoverPosition.flipAlignment(parsedMy.vertical);
-
-				myFits = myFits.filter((f) => f.my.startsWith(flippedMy + ' ') && f.at.startsWith(flippedAt + ' '));
-
-				if (myFits.length === 0 && bothCenter) {
-					// What about to the bottom?
-					myFits = myFits.filter(
-						(f) =>
-							f.my.startsWith(HoverPosition.flipAlignment(flippedMy) + ' ') &&
-							f.at.startsWith(HoverPosition.flipAlignment(flippedAt) + ' '),
-					);
-				}
-			}
-		}
+		myFits = HoverPosition.findBestFits(my, at, options, myFits);
 
 		if (myFits.length === 0) {
 			return { top: fitData.top.value, left: fitData.left.value };
@@ -360,11 +301,78 @@ export class HoverPosition {
 	}
 
 	private static flip(old: CombinedAlignment): CombinedAlignment {
-		var parsedOld = HoverPosition.parse(old);
+		const parsedOld = HoverPosition.parse(old);
 
 		return `${HoverPosition.flipAlignment(parsedOld.vertical)} ${HoverPosition.flipAlignment(
 			parsedOld.horizontal,
 		)}` as CombinedAlignment;
+	}
+
+	private static findBestFits(my: CombinedAlignment, at: CombinedAlignment, options: Options, inFitData: FitPositionData[]): FitPositionData[] {
+		const parsedMy = HoverPosition.parse(my),
+			parsedAt = HoverPosition.parse(at);
+
+		let bestFits: FitPositionData[];
+
+		const bestAltHorizFits = inFitData.filter(
+			(f) => f.my.startsWith(parsedMy.vertical + ' ') && f.at.startsWith(parsedAt.vertical + ' '),
+		);
+
+		const bestAltVertFits = inFitData.filter(
+			(f) => f.my.endsWith(' ' + parsedMy.horizontal) && f.at.endsWith(' ' + parsedAt.horizontal),
+		);
+
+		if (bestAltVertFits.length > 0 && bestAltHorizFits.length > 0) {
+			bestFits = options.bestFitPreference === 'vertical' ? bestAltVertFits : bestAltHorizFits;
+		} else if (bestAltVertFits.length > 0) {
+			bestFits = bestAltVertFits;
+		} else if (bestAltHorizFits.length > 0) {
+			bestFits = bestAltHorizFits;
+		} else {
+			if (options.bestFitPreference === 'vertical') {
+				// If it's center then we don't care about overlay. Infact, it's prefered!
+				const bothCenter = parsedMy.horizontal === 'center' && parsedAt.horizontal === 'center',
+					flippedMy = bothCenter
+						? 'left' // <= Does pushing to the left fit?
+						: HoverPosition.flipAlignment(parsedMy.horizontal),
+					flippedAt = bothCenter
+						? 'left' // <= Does pushing to the left fit?
+						: HoverPosition.flipAlignment(parsedMy.horizontal);
+
+				bestFits = inFitData.filter((f) => f.my.endsWith(' ' + flippedMy) && f.at.endsWith(' ' + flippedAt));
+
+				if (bestFits.length === 0 && bothCenter) {
+					// What about to the right?
+					bestFits = inFitData.filter(
+						(f) =>
+							f.my.endsWith(' ' + HoverPosition.flipAlignment(flippedMy)) &&
+							f.at.endsWith(' ' + HoverPosition.flipAlignment(flippedAt)),
+					);
+				}
+			} else {
+				// If it's center then we don't care about overlay. Infact, it's prefered!
+				const bothCenter = parsedMy.vertical === 'center' && parsedAt.vertical === 'center',
+					flippedMy = bothCenter
+						? 'top' // <= Does pushing to the top fit?
+						: HoverPosition.flipAlignment(parsedMy.vertical),
+					flippedAt = bothCenter
+						? 'top' // <= Does pushing to the top fit?
+						: HoverPosition.flipAlignment(parsedMy.vertical);
+
+				bestFits = inFitData.filter((f) => f.my.startsWith(flippedMy + ' ') && f.at.startsWith(flippedAt + ' '));
+
+				if (bestFits.length === 0 && bothCenter) {
+					// What about to the bottom?
+					bestFits = inFitData.filter(
+						(f) =>
+							f.my.startsWith(HoverPosition.flipAlignment(flippedMy) + ' ') &&
+							f.at.startsWith(HoverPosition.flipAlignment(flippedAt) + ' '),
+					);
+				}
+			}
+		}
+
+		return bestFits;
 	}
 }
 
