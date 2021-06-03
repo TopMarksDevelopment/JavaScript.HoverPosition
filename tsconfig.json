@@ -3,7 +3,7 @@
         "target": "es2015",
         "module": "commonjs",
         "sourceMap": true,
-        "outDir": "./Build/Release",
+        "outDir": "./lib",
         "declaration": true,
         "declarationMap": true
     }
