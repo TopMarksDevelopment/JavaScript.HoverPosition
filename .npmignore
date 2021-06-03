@@ -1,7 +1,0 @@
-# Ignore all
-# README, CHANGELOG, LICENSE & package.json will always be included
-*/*
-
-# We only care about the src & package-lock.json
-!src/
-!package-lock.json
