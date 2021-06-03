@@ -1,391 +1,371 @@
-import * as types from "./Types/AlignmentTypes";
-import Alignments from "./Interfaces/Alignments";
-import CalculationOutcome from "./Interfaces/CalculationOutcome";
-import Collision from "./Enumerators/PositionCollision";
-import ElementDimensions from "./Interfaces/ElementDimensions";
-import FitPosition from "./Interfaces/FitPosition";
-import FitPositionData from "./Interfaces/FitPositionData";
-import Options from "./Interfaces/PositionOptions";
+import * as types from './Types/AlignmentTypes';
+import Alignments from './Interfaces/Alignments';
+import CalculationOutcome from './Interfaces/CalculationOutcome';
+import Collision from './Enumerators/PositionCollision';
+import ElementDimensions from './Interfaces/ElementDimensions';
+import FitPosition from './Interfaces/FitPosition';
+import FitPositionData from './Interfaces/FitPositionData';
+import Options from './Interfaces/PositionOptions';
 
 export class HoverPosition {
-    private _bodyDims: ElementDimensions;
-    private _anchorDims: ElementDimensions;
-    private _hoverBoxDims: ElementDimensions;
+	private _bodyDims: ElementDimensions;
+	private _anchorDims: ElementDimensions;
+	private _hoverBoxDims: ElementDimensions;
 
-    /**
-     * The top to be applied to the element
-     */
-    top: string;
+	/**
+	 * The top to be applied to the element
+	 */
+	top: string;
 
-    /**
-     * The left to be applied to the element
-     */
-    left: string;
+	/**
+	 * The left to be applied to the element
+	 */
+	left: string;
 
-    /**
-     * Get the position placement for one element relative to another
-     * @param options The options to help attain the `top` & `left`
-     */
-    constructor(options: Options) {
-        const originalDisplay = options.target.style.display;
-        options.target.style.display = "none";
+	/**
+	 * Get the position placement for one element relative to another
+	 * @param options The options to help attain the `top` & `left`
+	 */
+	constructor(options: Options) {
+		this.initialisePrivateFields(options);
 
-        this._bodyDims = {
-            height: document.body.offsetHeight,
-            width: document.body.offsetWidth,
-            top: 0,
-            left: 0,
-        };
-        this._anchorDims =
-            options.anchor instanceof MouseEvent
-                ? {
-                      height: 10,
-                      width: 10,
-                      top: options.anchor.screenX,
-                      left: options.anchor.screenY,
-                  }
-                : {
-                      height: options.anchor.offsetHeight,
-                      width: options.anchor.offsetWidth,
-                      top: options.anchor.offsetTop,
-                      left: options.anchor.offsetLeft,
-                  };
+		const myPos = HoverPosition.parse(
+				options.my,
+				options.defaults ? HoverPosition.parse(options.defaults.my) : { vertical: 'top', horizontal: 'center' },
+				true,
+			),
+			atPos = HoverPosition.parse(
+				options.at,
+				options.defaults
+					? HoverPosition.parse(options.defaults.at)
+					: { vertical: 'bottom', horizontal: 'center' },
+				true,
+			);
 
-        options.target.style.display = "block";
+		if (
+			options.collision === Collision.ignore ||
+			(options.collision === Collision.flipfit && myPos === 'center center' && atPos === 'center center')
+		) {
+			this.left = this.calculateLeft(myPos, atPos).value.toString() + 'px';
+			this.top = this.calculateTop(myPos, atPos).value.toString() + 'px';
+		} else {
+			const pos = this.calculatePosition(myPos, atPos, options);
 
-        this._hoverBoxDims = {
-            height: options.target.offsetHeight,
-            width: options.target.offsetWidth,
-            top: 0,
-            left: 0,
-        };
+			this.top = pos.top.toString() + 'px';
+			this.left = pos.left.toString() + 'px';
+		}
+	}
 
-        options.target.style.display = originalDisplay;
+	private initialisePrivateFields(options: Options) {
+		this._bodyDims = {
+			height: document.body.offsetHeight,
+			width: document.body.offsetWidth,
+			top: 0,
+			left: 0,
+		};
+		this._anchorDims =
+			options.anchor instanceof MouseEvent
+				? {
+						height: 10,
+						width: 10,
+						top: options.anchor.screenX,
+						left: options.anchor.screenY,
+				  }
+				: {
+						height: options.anchor.offsetHeight,
+						width: options.anchor.offsetWidth,
+						top: options.anchor.offsetTop,
+						left: options.anchor.offsetLeft,
+				  };
 
-        const myPos = HoverPosition.parse(
-                options.my,
-                options.defaults
-                    ? HoverPosition.parse(options.defaults.my)
-                    : { vertical: "top", horizontal: "center" },
-                true
-            ),
-            atPos = HoverPosition.parse(
-                options.at,
-                options.defaults
-                    ? HoverPosition.parse(options.defaults.at)
-                    : { vertical: "bottom", horizontal: "center" },
-                true
-            );
+		const originalDisplay = options.target.style.display;
+		options.target.style.display = 'block';
 
-        if (
-            options.collision === Collision.ignore ||
-            (options.collision === Collision.flipfit &&
-                myPos === "center center" &&
-                atPos === "center center")
-        ) {
-            this.left = this.calculateLeft(myPos, atPos).value.toString() + "px";
-            this.top = this.calculateTop(myPos, atPos).value.toString() + "px";
-        } else {
-            const pos = this.calculatePosition(myPos, atPos, options);
+		this._hoverBoxDims = {
+			height: options.target.offsetHeight,
+			width: options.target.offsetWidth,
+			top: 0,
+			left: 0,
+		};
 
-            this.top = pos.top.toString() + "px";
-            this.left = pos.left.toString() + "px";
-        }
-    }
+		options.target.style.display = originalDisplay;
+	}
 
-    private calculatePosition(
-        my: CombinedAlignment,
-        at: CombinedAlignment,
-        options: Options
-    ): FitPosition {
-        const fitDataArray = this.getFitPositions(),
-            fitData = fitDataArray.filter((f) => f.my === my && f.at === at)[0];
+	private calculatePosition(my: CombinedAlignment, at: CombinedAlignment, options: Options): FitPosition {
+		const fitDataArray = this.getFitPositions(),
+			fitData = fitDataArray.filter((f) => f.my === my && f.at === at)[0];
 
-        if (
-            options.collision === Collision.ignore ||
-            (!fitData.top.willCollide && !fitData.left.willCollide)
-        ) {
-            return { top: fitData.top.value, left: fitData.left.value };
-        }
+		if (options.collision === Collision.ignore || (!fitData.top.willCollide && !fitData.left.willCollide)) {
+			return { top: fitData.top.value, left: fitData.left.value };
+		}
 
-        if (options.collision === Collision.flipfit) {
-            return this.calculatePosition(
-                HoverPosition.flip(my),
-                HoverPosition.flip(at),
-                Object.assign(options, { collision: Collision.ignore })
-            );
-        }
+		if (options.collision === Collision.flipfit) {
+			return this.calculatePosition(
+				HoverPosition.flip(my),
+				HoverPosition.flip(at),
+				Object.assign(options, { collision: Collision.ignore }),
+			);
+		}
 
-        let myFits = fitDataArray.filter(
-            (f) => (!f.top.willCollide || f.top.mayOverflow) && !f.left.willCollide
-        );
+		let myFits = fitDataArray.filter((f) => (!f.top.willCollide || f.top.mayOverflow) && !f.left.willCollide);
 
-        if (myFits.length === 0) {
-            return { top: fitData.top.value, left: fitData.left.value };
-        } else if (myFits.length === 1) {
-            return { top: myFits[0].top.value, left: myFits[0].left.value };
-        }
+		if (myFits.length === 0) {
+			return { top: fitData.top.value, left: fitData.left.value };
+		} else if (myFits.length === 1) {
+			return { top: myFits[0].top.value, left: myFits[0].left.value };
+		}
 
-        const parsedMy = HoverPosition.parse(my),
-            parsedAt = HoverPosition.parse(at);
+		const parsedMy = HoverPosition.parse(my),
+			parsedAt = HoverPosition.parse(at);
 
-        const bestAltHorizFits = myFits.filter(
-            (f) =>
-                f.my.startsWith(parsedMy.vertical + " ") && f.at.startsWith(parsedAt.vertical + " ")
-        );
+		const bestAltHorizFits = myFits.filter(
+			(f) => f.my.startsWith(parsedMy.vertical + ' ') && f.at.startsWith(parsedAt.vertical + ' '),
+		);
 
-        const bestAltVertFits = myFits.filter(
-            (f) =>
-                f.my.endsWith(" " + parsedMy.horizontal) && f.at.endsWith(" " + parsedAt.horizontal)
-        );
+		const bestAltVertFits = myFits.filter(
+			(f) => f.my.endsWith(' ' + parsedMy.horizontal) && f.at.endsWith(' ' + parsedAt.horizontal),
+		);
 
-        if (bestAltVertFits.length > 0 && bestAltHorizFits.length > 0) {
-            myFits = options.bestFitPreference === "vertical" ? bestAltVertFits : bestAltHorizFits;
-        } else if (bestAltVertFits.length > 0) {
-            myFits = bestAltVertFits;
-        } else if (bestAltHorizFits.length > 0) {
-            myFits = bestAltHorizFits;
-        } else {
-            if (options.bestFitPreference === "vertical") {
-                // If it's center then we don't care about overlay. Infact, it's prefered!
-                const bothCenter =
-                        parsedMy.horizontal === "center" && parsedAt.horizontal === "center",
-                    flippedMy = bothCenter
-                        ? "left" // <= Does pushing to the left fit?
-                        : HoverPosition.flipAlignment(parsedMy.horizontal),
-                    flippedAt = bothCenter
-                        ? "left" // <= Does pushing to the left fit?
-                        : HoverPosition.flipAlignment(parsedMy.horizontal);
+		if (bestAltVertFits.length > 0 && bestAltHorizFits.length > 0) {
+			myFits = options.bestFitPreference === 'vertical' ? bestAltVertFits : bestAltHorizFits;
+		} else if (bestAltVertFits.length > 0) {
+			myFits = bestAltVertFits;
+		} else if (bestAltHorizFits.length > 0) {
+			myFits = bestAltHorizFits;
+		} else {
+			if (options.bestFitPreference === 'vertical') {
+				// If it's center then we don't care about overlay. Infact, it's prefered!
+				const bothCenter = parsedMy.horizontal === 'center' && parsedAt.horizontal === 'center',
+					flippedMy = bothCenter
+						? 'left' // <= Does pushing to the left fit?
+						: HoverPosition.flipAlignment(parsedMy.horizontal),
+					flippedAt = bothCenter
+						? 'left' // <= Does pushing to the left fit?
+						: HoverPosition.flipAlignment(parsedMy.horizontal);
 
-                myFits = myFits.filter(
-                    (f) => f.my.endsWith(" " + flippedMy) && f.at.endsWith(" " + flippedAt)
-                );
+				myFits = myFits.filter((f) => f.my.endsWith(' ' + flippedMy) && f.at.endsWith(' ' + flippedAt));
 
-                if (myFits.length === 0 && bothCenter) {
-                    // What about to the right?
-                    myFits = myFits.filter(
-                        (f) =>
-                            f.my.endsWith(" " + HoverPosition.flipAlignment(flippedMy)) &&
-                            f.at.endsWith(" " + HoverPosition.flipAlignment(flippedAt))
-                    );
-                }
-            } else {
-                // If it's center then we don't care about overlay. Infact, it's prefered!
-                const bothCenter = parsedMy.vertical === "center" && parsedAt.vertical === "center",
-                    flippedMy = bothCenter
-                        ? "top" // <= Does pushing to the top fit?
-                        : HoverPosition.flipAlignment(parsedMy.vertical),
-                    flippedAt = bothCenter
-                        ? "top" // <= Does pushing to the top fit?
-                        : HoverPosition.flipAlignment(parsedMy.vertical);
+				if (myFits.length === 0 && bothCenter) {
+					// What about to the right?
+					myFits = myFits.filter(
+						(f) =>
+							f.my.endsWith(' ' + HoverPosition.flipAlignment(flippedMy)) &&
+							f.at.endsWith(' ' + HoverPosition.flipAlignment(flippedAt)),
+					);
+				}
+			} else {
+				// If it's center then we don't care about overlay. Infact, it's prefered!
+				const bothCenter = parsedMy.vertical === 'center' && parsedAt.vertical === 'center',
+					flippedMy = bothCenter
+						? 'top' // <= Does pushing to the top fit?
+						: HoverPosition.flipAlignment(parsedMy.vertical),
+					flippedAt = bothCenter
+						? 'top' // <= Does pushing to the top fit?
+						: HoverPosition.flipAlignment(parsedMy.vertical);
 
-                myFits = myFits.filter(
-                    (f) => f.my.startsWith(flippedMy + " ") && f.at.startsWith(flippedAt + " ")
-                );
+				myFits = myFits.filter((f) => f.my.startsWith(flippedMy + ' ') && f.at.startsWith(flippedAt + ' '));
 
-                if (myFits.length === 0 && bothCenter) {
-                    // What about to the bottom?
-                    myFits = myFits.filter(
-                        (f) =>
-                            f.my.startsWith(HoverPosition.flipAlignment(flippedMy) + " ") &&
-                            f.at.startsWith(HoverPosition.flipAlignment(flippedAt) + " ")
-                    );
-                }
-            }
-        }
+				if (myFits.length === 0 && bothCenter) {
+					// What about to the bottom?
+					myFits = myFits.filter(
+						(f) =>
+							f.my.startsWith(HoverPosition.flipAlignment(flippedMy) + ' ') &&
+							f.at.startsWith(HoverPosition.flipAlignment(flippedAt) + ' '),
+					);
+				}
+			}
+		}
 
-        if (myFits.length === 0) {
-            return { top: fitData.top.value, left: fitData.left.value };
-        } else if (myFits.length === 1) {
-            return { top: myFits[0].top.value, left: myFits[0].left.value };
-        }
+		if (myFits.length === 0) {
+			return { top: fitData.top.value, left: fitData.left.value };
+		} else if (myFits.length === 1) {
+			return { top: myFits[0].top.value, left: myFits[0].left.value };
+		}
 
-        let tempFits = myFits.filter((f) => f.my === my);
+		let tempFits = myFits.filter((f) => f.my === my);
 
-        if (tempFits.length > 0) {
-            myFits = tempFits;
-        }
+		if (tempFits.length > 0) {
+			myFits = tempFits;
+		}
 
-        tempFits = myFits.filter((f) => f.at === at);
+		tempFits = myFits.filter((f) => f.at === at);
 
-        if (tempFits.length > 0) {
-            myFits = tempFits;
-        }
+		if (tempFits.length > 0) {
+			myFits = tempFits;
+		}
 
-        return { top: myFits[0].top.value, left: myFits[0].left.value };
-    }
+		return { top: myFits[0].top.value, left: myFits[0].left.value };
+	}
 
-    private static flipAlignment(old: VerticalAlignment): VerticalAlignment;
-    private static flipAlignment(old: HorizontalAlignment): HorizontalAlignment;
-    private static flipAlignment(
-        old: VerticalAlignment | HorizontalAlignment
-    ): VerticalAlignment | HorizontalAlignment {
-        switch (old) {
-            case "top":
-                return "bottom";
+	private calculateTop(
+		my: CombinedAlignment | VerticalAlignment,
+		at: CombinedAlignment | VerticalAlignment,
+	): CalculationOutcome {
+		let top = 0;
+		let myV: VerticalAlignment, atV: VerticalAlignment;
 
-            case "bottom":
-                return "top";
+		if (my === 'top' || my === 'bottom' || my === 'center') {
+			myV = my;
+		} else {
+			myV = my.split(' ')[1] as VerticalAlignment;
+		}
 
-            case "left":
-                return "right";
+		if (at === 'top' || at === 'bottom' || at === 'center') {
+			atV = at;
+		} else {
+			atV = at.split(' ')[1] as VerticalAlignment;
+		}
 
-            case "right":
-                return "left";
+		// First get the adjustment
+		if (myV === 'top') {
+			top = 0;
+		} else if (myV === 'bottom') {
+			top = this._hoverBoxDims.height * -1;
+		} else {
+			top = (this._hoverBoxDims.height / 2) * -1;
+		}
 
-            default:
-                return "center";
-        }
-    }
+		// Then add the position
+		if (atV === 'top') {
+			top += this._anchorDims.top;
+		} else if (atV === 'bottom') {
+			top += this._anchorDims.top + this._anchorDims.height;
+		} else {
+			top += this._anchorDims.top + this._anchorDims.height / 2;
+		}
 
-    private static flip(old: CombinedAlignment): CombinedAlignment {
-        var parsedOld = HoverPosition.parse(old);
+		const willCollide = top < 0 || top + this._hoverBoxDims.height > this._bodyDims.height;
 
-        return `${HoverPosition.flipAlignment(parsedOld.vertical)} ${HoverPosition.flipAlignment(
-            parsedOld.horizontal
-        )}` as CombinedAlignment;
-    }
+		return { value: top, willCollide: willCollide, mayOverflow: myV === 'top' };
+	}
 
-    private calculateTop(
-        my: CombinedAlignment | VerticalAlignment,
-        at: CombinedAlignment | VerticalAlignment
-    ): CalculationOutcome {
-        let top = 0;
-        let myV: VerticalAlignment, atV: VerticalAlignment;
+	private calculateLeft(
+		my: CombinedAlignment | HorizontalAlignment,
+		at: CombinedAlignment | HorizontalAlignment,
+	): CalculationOutcome {
+		let left = 0;
+		let myH: HorizontalAlignment, atH: HorizontalAlignment;
 
-        if (my === "top" || my === "bottom" || my === "center") {
-            myV = my;
-        } else {
-            myV = my.split(" ")[1] as VerticalAlignment;
-        }
+		if (my === 'left' || my === 'right' || my === 'center') {
+			myH = my;
+		} else {
+			myH = my.split(' ')[1] as HorizontalAlignment;
+		}
 
-        if (at === "top" || at === "bottom" || at === "center") {
-            atV = at;
-        } else {
-            atV = at.split(" ")[1] as VerticalAlignment;
-        }
+		if (at === 'left' || at === 'right' || at === 'center') {
+			atH = at;
+		} else {
+			atH = at.split(' ')[1] as HorizontalAlignment;
+		}
 
-        // First get the adjustment
-        if (myV === "top") {
-            top = 0;
-        } else if (myV === "bottom") {
-            top = this._hoverBoxDims.height * -1;
-        } else {
-            top = (this._hoverBoxDims.height / 2) * -1;
-        }
+		// First get the adjustment
+		if (myH === 'left') {
+			left = 0;
+		} else if (myH === 'right') {
+			left = this._hoverBoxDims.width * -1;
+		} else {
+			left = (this._hoverBoxDims.width / 2) * -1;
+		}
 
-        // Then add the position
-        if (atV === "top") {
-            top += this._anchorDims.top;
-        } else if (atV === "bottom") {
-            top += this._anchorDims.top + this._anchorDims.height;
-        } else {
-            top += this._anchorDims.top + this._anchorDims.height / 2;
-        }
+		// Then add the position
+		if (atH === 'left') {
+			left += this._anchorDims.left;
+		} else if (atH === 'right') {
+			left += this._anchorDims.left + this._anchorDims.width;
+		} else {
+			left += this._anchorDims.left + this._anchorDims.width / 2;
+		}
 
-        const willCollide = top < 0 || top + this._hoverBoxDims.height > this._bodyDims.height;
+		const willCollide = left < 0 || left + this._hoverBoxDims.width > this._bodyDims.width;
 
-        return { value: top, willCollide: willCollide, mayOverflow: myV === "top" };
-    }
+		return { value: left, willCollide: willCollide };
+	}
 
-    private calculateLeft(
-        my: CombinedAlignment | HorizontalAlignment,
-        at: CombinedAlignment | HorizontalAlignment
-    ): CalculationOutcome {
-        let left = 0;
-        let myH: HorizontalAlignment, atH: HorizontalAlignment;
+	private getFitPositions(): FitPositionData[] {
+		const data: FitPositionData[] = [];
 
-        if (my === "left" || my === "right" || my === "center") {
-            myH = my;
-        } else {
-            myH = my.split(" ")[1] as HorizontalAlignment;
-        }
+		(<VerticalAlignment[]>['top', 'bottom', 'center']).forEach((myV) => {
+			(<HorizontalAlignment[]>['left', 'right', 'center']).forEach((myH) => {
+				(<VerticalAlignment[]>['top', 'bottom', 'center']).forEach((atV) => {
+					(<HorizontalAlignment[]>['left', 'right', 'center']).forEach((atH) => {
+						data.push({
+							my: `${myV} ${myH}` as CombinedAlignment,
+							at: `${atV} ${atH}` as CombinedAlignment,
+							top: this.calculateTop(myV, atV),
+							left: this.calculateLeft(myH, atH),
+						});
+					});
+				});
+			});
+		});
 
-        if (at === "left" || at === "right" || at === "center") {
-            atH = at;
-        } else {
-            atH = at.split(" ")[1] as HorizontalAlignment;
-        }
+		return data;
+	}
 
-        // First get the adjustment
-        if (myH === "left") {
-            left = 0;
-        } else if (myH === "right") {
-            left = this._hoverBoxDims.width * -1;
-        } else {
-            left = (this._hoverBoxDims.width / 2) * -1;
-        }
+	/**
+	 * Parse an alignment string to it's `vertical` and `horizontal` alignments
+	 * @param alignment The alignment data to parse
+	 */
+	public static parse(alignment: CombinedAlignment): Alignments;
+	public static parse(alignment: PositionAlignment, defaults: Alignments): Alignments;
+	public static parse(alignment: PositionAlignment, defaults: Alignments, asCombined: true): CombinedAlignment;
+	public static parse(
+		alignment: PositionAlignment,
+		defaults?: Alignments,
+		asCombined?: boolean,
+	): Alignments | CombinedAlignment {
+		let vert = defaults?.vertical ?? 'center',
+			horiz: HorizontalAlignment = defaults?.horizontal ?? 'center';
 
-        // Then add the position
-        if (atH === "left") {
-            left += this._anchorDims.left;
-        } else if (atH === "right") {
-            left += this._anchorDims.left + this._anchorDims.width;
-        } else {
-            left += this._anchorDims.left + this._anchorDims.width / 2;
-        }
+		if (alignment.indexOf(' ') < 0) {
+			const vertOrHoriz = alignment as VerticalAlignment | HorizontalAlignment;
 
-        const willCollide = left < 0 || left + this._hoverBoxDims.width > this._bodyDims.width;
+			if (vertOrHoriz === 'center') {
+				vert = vertOrHoriz;
+				horiz = vertOrHoriz;
+			} else if (vertOrHoriz === 'top' || vertOrHoriz === 'bottom') {
+				vert = vertOrHoriz;
+			} else {
+				horiz = vertOrHoriz;
+			}
+		} else {
+			vert = alignment.split(' ')[0] as VerticalAlignment;
+			horiz = alignment.split(' ')[1] as HorizontalAlignment;
+		}
 
-        return { value: left, willCollide: willCollide };
-    }
+		return asCombined === true ? (`${vert} ${horiz}` as CombinedAlignment) : { vertical: vert, horizontal: horiz };
+	}
 
-    private getFitPositions(): FitPositionData[] {
-        const data: FitPositionData[] = [];
+	private static flipAlignment(old: VerticalAlignment): VerticalAlignment;
+	private static flipAlignment(old: HorizontalAlignment): HorizontalAlignment;
+	private static flipAlignment(
+		old: VerticalAlignment | HorizontalAlignment,
+	): VerticalAlignment | HorizontalAlignment {
+		switch (old) {
+			case 'top':
+				return 'bottom';
 
-        (<VerticalAlignment[]>["top", "bottom", "center"]).forEach((myV) => {
-            (<HorizontalAlignment[]>["left", "right", "center"]).forEach((myH) => {
-                (<VerticalAlignment[]>["top", "bottom", "center"]).forEach((atV) => {
-                    (<HorizontalAlignment[]>["left", "right", "center"]).forEach((atH) => {
-                        data.push({
-                            my: `${myV} ${myH}` as CombinedAlignment,
-                            at: `${atV} ${atH}` as CombinedAlignment,
-                            top: this.calculateTop(myV, atV),
-                            left: this.calculateLeft(myH, atH),
-                        });
-                    });
-                });
-            });
-        });
+			case 'bottom':
+				return 'top';
 
-        return data;
-    }
+			case 'left':
+				return 'right';
 
-    public static parse(alignment: CombinedAlignment): Alignments;
-    public static parse(alignment: PositionAlignment, defaults: Alignments): Alignments;
-    public static parse(
-        alignment: PositionAlignment,
-        defaults: Alignments,
-        asCombined: true
-    ): CombinedAlignment;
-    public static parse(
-        alignment: PositionAlignment,
-        defaults?: Alignments,
-        asCombined?: boolean
-    ): Alignments | CombinedAlignment {
-        let vert = defaults?.vertical ?? "center",
-            horiz: HorizontalAlignment = defaults?.horizontal ?? "center";
+			case 'right':
+				return 'left';
 
-        if (alignment.indexOf(" ") < 0) {
-            const vertOrHoriz = alignment as VerticalAlignment | HorizontalAlignment;
+			default:
+				return 'center';
+		}
+	}
 
-            if (vertOrHoriz === "center") {
-                vert = vertOrHoriz;
-                horiz = vertOrHoriz;
-            } else if (vertOrHoriz === "top" || vertOrHoriz === "bottom") {
-                vert = vertOrHoriz;
-            } else {
-                horiz = vertOrHoriz;
-            }
-        } else {
-            vert = alignment.split(" ")[0] as VerticalAlignment;
-            horiz = alignment.split(" ")[1] as HorizontalAlignment;
-        }
+	private static flip(old: CombinedAlignment): CombinedAlignment {
+		var parsedOld = HoverPosition.parse(old);
 
-        return asCombined === true
-            ? (`${vert} ${horiz}` as CombinedAlignment)
-            : { vertical: vert, horizontal: horiz };
-    }
+		return `${HoverPosition.flipAlignment(parsedOld.vertical)} ${HoverPosition.flipAlignment(
+			parsedOld.horizontal,
+		)}` as CombinedAlignment;
+	}
 }
 
 export type PositionAlignment = types.PositionAlignment;
@@ -393,4 +373,4 @@ export type CombinedAlignment = types.CombinedAlignment;
 export type VerticalAlignment = types.VerticalAlignment;
 export type HorizontalAlignment = types.HorizontalAlignment;
 
-export { default as PositionCollision } from "./Enumerators/PositionCollision";
+export { default as PositionCollision } from './Enumerators/PositionCollision';

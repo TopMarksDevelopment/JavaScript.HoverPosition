@@ -1,27 +1,43 @@
 {
-  "name": "hover-position",
-  "version": "0.0.0-alpha.0",
+  "name": "@topmarksdevelopment/hover-position",
   "description": "A compact tool to help position an element against another. Similar to JQuery `.position()`",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TopMarksDevelopment/JavaScript.HoverPosition.git"
-  },
+  "author": "TopMarksDevelopment",
+  "version": "0.0.0-alpha.1",
+  "preview": true,
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "keywords": [
     "JQuery position",
     "element position",
     "vanilla js positioning"
   ],
-  "author": "TopMarksDevelopment",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TopMarksDevelopment/JavaScript.HoverPosition.git"
+  },
   "bugs": {
     "url": "https://github.com/TopMarksDevelopment/JavaScript.HoverPosition/issues"
   },
   "homepage": "https://github.com/TopMarksDevelopment/JavaScript.HoverPosition#readme",
+  "files": [
+    "lib/**",
+    "package-lock.json"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint . --ext .ts",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint"
+  },
   "devDependencies": {
-    "typescript": "^4.2.4"
-  }
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "eslint": "^7.27.0",
+    "prettier": "^2.3.0",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {}
 }
