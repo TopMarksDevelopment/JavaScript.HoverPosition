@@ -68,8 +68,8 @@ export class HoverPosition {
 				? {
 						height: 10,
 						width: 10,
-						top: options.anchor.screenX,
-						left: options.anchor.screenY,
+						top: options.anchor.pageY,
+						left: options.anchor.pageX,
 				  }
 				: {
 						height: options.anchor.offsetHeight,
