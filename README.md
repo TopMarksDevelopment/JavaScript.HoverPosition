@@ -2,6 +2,10 @@
 
 A small package to help position a floating element. This can be positioned relative to another element or to a mouse event.
 
+### Links
+- [Change log](./CHANGELOG.md)
+- [License (MIT)](./LICENSE)
+
 ## Usage
 
 If you want to position an element to another fixed element then you can use the sample below
@@ -22,11 +26,11 @@ If you'd rather position the element to the mouse's movement then you can use th
 > ⚠ It is recommended to debounce the below sample, just to prevent performance issues
 
 ```TS
-document.addEventListener("mousemove", function(e){
+document.addEventListener("mousemove", function(mouse){
     const target = document.getElementById("Target"),
-        position = new HoverPosition(
+        pos = new HoverPosition(
             {
-                anchor: document.getElementById("Anchor"),
+                anchor: mouse,
                 target: target,
                 my: "top center",
                 at: "bottom center",
@@ -115,11 +119,3 @@ So, as well as those above, it will also allow:
 -   "center"
 -   "left"
 -   "right"
-
-## Changes
-
-You can see all the changes in our [change log](./CHANGELOG.md)
-
-## License
-
-This extension is licensed under the [MIT License](./LICENSE)
