@@ -81,6 +81,17 @@ export class HoverPosition {
 		const originalDisplay = options.target.style.display;
 		options.target.style.display = 'block';
 
+		if (options.anchor instanceof HTMLElement) {
+			let parent = options.anchor.parentElement;
+
+			while (parent !== null && parent.tagName !== "BODY") {
+				this._anchorDims.top -= parent.scrollTop;
+				this._anchorDims.left -= parent.scrollLeft;
+				
+				parent = parent.parentElement;
+			}
+		}
+
 		this._hoverBoxDims = {
 			height: options.target.offsetHeight,
 			width: options.target.offsetWidth,
