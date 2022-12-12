@@ -1,3 +1,6 @@
+># ⚠ This package is depreacted  
+>Use [@topmarksdevelopment/position](https://www.npmjs.com/package/@topmarksdevelopment/position) instead
+
 # Hover Position (A JavaScript package)
 
 A small package to help position a floating element. This can be positioned relative to another element or to a mouse event.
